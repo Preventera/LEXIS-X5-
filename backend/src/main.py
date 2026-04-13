@@ -17,10 +17,10 @@ app = FastAPI(
     description="Document Intelligence Agentique pour la SST",
 )
 
-# CORS — dev local (Vite sur 5173, fallback 3000)
+# CORS — dev local (tout port localhost)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origin_regex=r"^http://localhost:\d+$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
