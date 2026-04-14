@@ -2,7 +2,24 @@
 
 from __future__ import annotations
 
+import os
+import shutil
+
 import structlog
+
+# Garantir que java est accessible dans le PATH du processus.
+# Sur Windows, le PATH hérité par le sous-processus uvicorn peut ne pas
+# inclure JAVA_HOME/bin, ce qui provoque [WinError 2] dans opendataloader-pdf.
+if not shutil.which("java"):
+    java_home = os.environ.get("JAVA_HOME", "")
+    if java_home:
+        java_bin = os.path.join(java_home, "bin")
+        os.environ["PATH"] = java_bin + os.pathsep + os.environ.get("PATH", "")
+    else:
+        # Emplacement par défaut Adoptium sur Windows
+        _default = r"C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin"
+        if os.path.isfile(os.path.join(_default, "java.exe")):
+            os.environ["PATH"] = _default + os.pathsep + os.environ.get("PATH", "")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

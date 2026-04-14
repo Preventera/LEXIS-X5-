@@ -141,7 +141,6 @@ async def upload_pdf(file: UploadFile) -> UploadResponse:
             input_path=str(pdf_path),
             output_dir=md_out_dir,
             format="markdown",
-            hybrid="docling-fast",
             quiet=True,
         )
 
@@ -159,7 +158,6 @@ async def upload_pdf(file: UploadFile) -> UploadResponse:
             input_path=str(pdf_path),
             output_dir=json_out_dir,
             format="json",
-            hybrid="docling-fast",
             quiet=True,
         )
 
