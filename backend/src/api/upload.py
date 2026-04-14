@@ -135,14 +135,31 @@ async def upload_pdf(file: UploadFile) -> UploadResponse:
         pdf_path = Path(tmp_dir) / filename
         pdf_path.write_bytes(content)
 
-        # Parse Markdown
+        # Parse Markdown — hybrid avec fallback Java-only
         md_out_dir = tempfile.mkdtemp(prefix="lexis_md_", dir=tmp_dir)
-        odl_convert(
-            input_path=str(pdf_path),
-            output_dir=md_out_dir,
-            format="markdown",
-            quiet=True,
-        )
+        try:
+            odl_convert(
+                input_path=str(pdf_path),
+                output_dir=md_out_dir,
+                format="markdown",
+                hybrid="docling-fast",
+                quiet=True,
+            )
+        except Exception as hybrid_err:
+            logger.warning(
+                "lexis.upload.hybrid_fallback",
+                filename=filename,
+                format="markdown",
+                error=str(hybrid_err),
+            )
+            shutil.rmtree(md_out_dir, ignore_errors=True)
+            md_out_dir = tempfile.mkdtemp(prefix="lexis_md_fb_", dir=tmp_dir)
+            odl_convert(
+                input_path=str(pdf_path),
+                output_dir=md_out_dir,
+                format="markdown",
+                quiet=True,
+            )
 
         md_files = list(Path(md_out_dir).glob("*.md"))
         if not md_files:
@@ -152,14 +169,31 @@ async def upload_pdf(file: UploadFile) -> UploadResponse:
             )
         markdown_content = md_files[0].read_text(encoding="utf-8")
 
-        # Parse JSON
+        # Parse JSON — hybrid avec fallback Java-only
         json_out_dir = tempfile.mkdtemp(prefix="lexis_json_", dir=tmp_dir)
-        odl_convert(
-            input_path=str(pdf_path),
-            output_dir=json_out_dir,
-            format="json",
-            quiet=True,
-        )
+        try:
+            odl_convert(
+                input_path=str(pdf_path),
+                output_dir=json_out_dir,
+                format="json",
+                hybrid="docling-fast",
+                quiet=True,
+            )
+        except Exception as hybrid_err:
+            logger.warning(
+                "lexis.upload.hybrid_fallback",
+                filename=filename,
+                format="json",
+                error=str(hybrid_err),
+            )
+            shutil.rmtree(json_out_dir, ignore_errors=True)
+            json_out_dir = tempfile.mkdtemp(prefix="lexis_json_fb_", dir=tmp_dir)
+            odl_convert(
+                input_path=str(pdf_path),
+                output_dir=json_out_dir,
+                format="json",
+                quiet=True,
+            )
 
         json_files = list(Path(json_out_dir).glob("*.json"))
         if not json_files:
